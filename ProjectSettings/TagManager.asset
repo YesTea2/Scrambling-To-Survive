@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Teleport
   - WordBox
+  - EnemyWalker
+  - Enemy
   layers:
   - Default
   - TransparentFX

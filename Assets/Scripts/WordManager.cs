@@ -26,12 +26,17 @@ public class WordManager : MonoBehaviour
     LockedCheck lockedLetter;
     [SerializeField]
     LockedBool lockedBool;
+    [SerializeField]
+    GameObject[] levelOneEnemyPool;
+    [SerializeField]
+    Transform[] spawnPointEnemy;
     IEnumerator pause;
     List<Word> levelWords = new List<Word>();
     List<string> scrambledWord = new List<string>();
     List<string> letters = new List<string>();
     List<string> finalWord = new List<string>();
     List<string> lastLetter = new List<string>();
+    List<string> finishedWords = new List<string>();
     public int currentLevel;
     bool hasUpdatedLevelOne;
     public int letterPassed;
@@ -40,6 +45,7 @@ public class WordManager : MonoBehaviour
     public bool hasUpdated;
     bool hasUpdatedLevel;
     int storedRandomInt;
+    int counterForEnemy;
     private void Awake()
     {
         lockedLetter.lettersLocked = 0;
@@ -71,7 +77,7 @@ public class WordManager : MonoBehaviour
 
     private void Update()
     { 
-        Debug.Log(letterPassed.ToString());
+      //  Debug.Log(letterPassed.ToString());
         if (lockedLetter.lettersLocked == 5)
         {
             if (!hasUpdated)
@@ -110,6 +116,7 @@ public class WordManager : MonoBehaviour
 
                         if (letterPassed == 5)
                         {
+                            finishedWords.Add(finalString);
                             scrambleSlots[0].transform.GetChild(0).GetComponent<TMP_Text>().text = "g";
                             scrambleSlots[1].transform.GetChild(0).GetComponent<TMP_Text>().text = "r";
                             scrambleSlots[2].transform.GetChild(0).GetComponent<TMP_Text>().text = "e";
@@ -149,18 +156,33 @@ public class WordManager : MonoBehaviour
         if (currentLevel > 1 && currentLevel < 5 && !hasUpdatedLevel)
         {
             hasUpdatedLevel = true;
-            levelWords.RemoveAt(storedRandomInt);
+            
             int randomRange = Random.Range(0, levelOneWords.Length);
-
+            storedRandomInt = randomRange;
             wordForScramble = levelWords[randomRange].wordToUse;
             finalString = wordForScramble;
+            if(finishedWords.Count > 0)
+            {
+                for(int l = 0; l < finishedWords.Count; l++)
+                {
+                    if (finishedWords[l] != null)
+                    {
+                        if (finishedWords[l] == finalString)
+                        {
+                            SplitWord(finalString);
+                            break;
+                        }
+                       
+                    }
+                   
+                   
+                }
+                
+            }
         }
-        else if (currentLevel >= 5) 
-        { 
-
-        }
+        hasUpdatedLevel = false;
         StopAllCoroutines();
-        hasUpdated = false;
+      
         for (int i = 0; i < timerImages.Length; i++)
         {
             timerImages[i].color = colorToStartTime;
@@ -259,6 +281,26 @@ public class WordManager : MonoBehaviour
     {
         StartCoroutine(TimerForScramble(finalString));
     }
+
+    void CheckEnemyLevel()
+    {
+        int wayToSend = 0;
+        int randomNumber = Random.Range(0, 1);
+        Debug.Log("Random number is" + randomNumber.ToString() + "direction number is" + wayToSend.ToString());
+        if(randomNumber == 0)
+        {
+            wayToSend = -1;
+        }
+        else if(randomNumber == 1)
+        {
+            wayToSend = 1;
+        }
+        if (counterForEnemy < 3)
+        {
+            GameObject newEnemy = Instantiate(levelOneEnemyPool[0], spawnPointEnemy[randomNumber]);
+            newEnemy.GetComponent<EnemyWalker>().DirectionToSend(wayToSend, true);
+        }
+    }
     IEnumerator ResetBricks()
     {
         letterPassed = 0;
@@ -280,6 +322,15 @@ public class WordManager : MonoBehaviour
 
     IEnumerator NewLevel()
     {
+        GameObject[] enemys = GameObject.FindGameObjectsWithTag("Enemy");
+        for(int i =0; i < enemys.Length; i++)
+        {
+            if (enemys[i] != null)
+            {
+                Destroy(enemys[i], .1f);
+            }
+        }
+        counterForEnemy = 0;
         currentLevel += 1;
         letterPassed = 0;
         yield return new WaitForSeconds(1f);
@@ -320,6 +371,8 @@ public class WordManager : MonoBehaviour
         yield return new WaitForSeconds(1f);
         timerImages[0].color = colorToChangeTime;
         yield return new WaitForSeconds(1f);
+        counterForEnemy += 1;
+        CheckEnemyLevel();
         SplitWord(wordForScramble);
         yield break;
     }
