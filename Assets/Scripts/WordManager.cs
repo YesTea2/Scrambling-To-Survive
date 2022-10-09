@@ -30,6 +30,8 @@ public class WordManager : MonoBehaviour
     GameObject[] levelOneEnemyPool;
     [SerializeField]
     Transform[] spawnPointEnemy;
+    [SerializeField]
+    TextMeshProUGUI textForLevel;
     IEnumerator pause;
     List<Word> levelWords = new List<Word>();
     List<string> scrambledWord = new List<string>();
@@ -39,6 +41,7 @@ public class WordManager : MonoBehaviour
     List<string> finishedWords = new List<string>();
     public int currentLevel;
     bool hasUpdatedLevelOne;
+    bool hasUpdatedlevelTwo;
     public int letterPassed;
     public bool hasCheckedFinalWord;
     string finalString;
@@ -67,7 +70,7 @@ public class WordManager : MonoBehaviour
                 }
             }
         }
-
+        textForLevel.text = "Level 1-"+currentLevel.ToString() + " Foods";
         int randomRange = Random.Range(0, levelOneWords.Length);
         storedRandomInt = randomRange;
         finalString = levelWords[randomRange].wordToUse;
@@ -123,7 +126,7 @@ public class WordManager : MonoBehaviour
                             scrambleSlots[3].transform.GetChild(0).GetComponent<TMP_Text>().text = "a";
                             scrambleSlots[4].transform.GetChild(0).GetComponent<TMP_Text>().text = "t";
                             StartCoroutine(NewLevel());
-
+                           
                         }
                         else if(letterPassed != 5)
                         {
@@ -142,6 +145,7 @@ public class WordManager : MonoBehaviour
 
                             }
                             StartCoroutine(ResetBricks());
+                           
                         }
                     }
                 }
@@ -153,36 +157,73 @@ public class WordManager : MonoBehaviour
 
     public void SplitWord(string wordForScramble)
     {
-        if (currentLevel > 1 && currentLevel < 5 && !hasUpdatedLevel)
+        if (pause != null)
+        {
+            StopCoroutine(pause);
+        }
+
+        if (currentLevel > 1 && !hasUpdatedLevel && currentLevel <= 4)
         {
             hasUpdatedLevel = true;
-            
+
             int randomRange = Random.Range(0, levelOneWords.Length);
             storedRandomInt = randomRange;
             wordForScramble = levelWords[randomRange].wordToUse;
             finalString = wordForScramble;
-            if(finishedWords.Count > 0)
+            if (finishedWords.Count > 0)
             {
-                for(int l = 0; l < finishedWords.Count; l++)
+                for (int l = 0; l < finishedWords.Count; l++)
                 {
                     if (finishedWords[l] != null)
                     {
                         if (finishedWords[l] == finalString)
                         {
+                            hasUpdatedLevel = false;
                             SplitWord(finalString);
+
                             break;
                         }
-                       
+
                     }
-                   
-                   
+
+
                 }
-                
+
             }
         }
-        hasUpdatedLevel = false;
-        StopAllCoroutines();
+
+        else if (currentLevel >= 5 && !hasUpdatedLevel)
+        {
+            hasUpdatedLevel = true;
+
+            int randomRange = Random.Range(0, levelTwoWords.Length);
+            storedRandomInt = randomRange;
+            wordForScramble = levelWords[randomRange].wordToUse;
+            finalString = wordForScramble;
+            if (finishedWords.Count > 0)
+            {
+                for (int l = 0; l < finishedWords.Count; l++)
+                {
+                    if (finishedWords[l] != null)
+                    {
+                        if (finishedWords[l] == finalString)
+                        {
+                            hasUpdatedLevel = false;
+                            SplitWord(finalString);
+
+                            break;
+                        }
+
+                    }
+
+
+                }
+
+            }
+        }
+            hasUpdatedLevel = true;
       
+
         for (int i = 0; i < timerImages.Length; i++)
         {
             timerImages[i].color = colorToStartTime;
@@ -197,7 +238,9 @@ public class WordManager : MonoBehaviour
         letters = new List<string>();
        
         string storeThisWord = wordForScramble;
-        pause = TimerForScramble(finalString);
+       
+       
+        
         string[] wordToUse = new string[wordForScramble.Length];
         for (int y = 0; y < wordForScramble.Length; y++)
         {
@@ -217,7 +260,7 @@ public class WordManager : MonoBehaviour
     {
         List<string> tempWord = new List<string>();
 
-
+        
         for (int i = 0; i < wordForScramble.Length; i++)
         {
 
@@ -271,15 +314,18 @@ public class WordManager : MonoBehaviour
                 }
             }
 
-            StartCoroutine(TimerForScramble(wordForScramble));
-         
-         
+
+            pause = TimerForScramble(finalString);
+            
+            StartCoroutine(pause);
+            
+
         }
     }
 
     public void ResumeRoutine()
     {
-        StartCoroutine(TimerForScramble(finalString));
+        StartCoroutine(pause);
     }
 
     void CheckEnemyLevel()
@@ -298,12 +344,16 @@ public class WordManager : MonoBehaviour
         if (counterForEnemy < 3)
         {
             GameObject newEnemy = Instantiate(levelOneEnemyPool[0], spawnPointEnemy[randomNumber]);
+            Debug.Log(wayToSend.ToString());
             newEnemy.GetComponent<EnemyWalker>().DirectionToSend(wayToSend, true);
+            return;
         }
     }
     IEnumerator ResetBricks()
     {
         letterPassed = 0;
+        hasUpdated = false;
+        lockedLetter.lettersLocked = 0;
         yield return new WaitForSeconds(1f);
 
         for (int d = 0; d < scrambleSlots.Length; d++)
@@ -312,9 +362,11 @@ public class WordManager : MonoBehaviour
             scrambleSlots[d].GetComponent<BoxController>().isLocked = false;
             scrambleSlots[d].GetComponent<BoxController>().ResetLock();
             scrambleSlots[d].GetComponent<BoxController>().ResetColor();
+           
         }
+        
         SplitWord(finalString);
-        StartCoroutine(pause);
+       
 
         yield break;
 
@@ -333,24 +385,62 @@ public class WordManager : MonoBehaviour
         counterForEnemy = 0;
         currentLevel += 1;
         letterPassed = 0;
+      
         yield return new WaitForSeconds(1f);
 
         for (int d = 0; d < scrambleSlots.Length; d++)
         {
             lockedLetter.lettersLocked = 0;
             scrambleSlots[d].GetComponent<BoxController>().isLocked = false;
-            scrambleSlots[d].GetComponent<BoxController>().ResetLock();
             scrambleSlots[d].GetComponent<BoxController>().ResetColor();
+            scrambleSlots[d].GetComponent<BoxController>().ResetTheBrick();
         }
+        
+        if(currentLevel <= 4)
+        {
+            textForLevel.text = "Level 1-" + currentLevel.ToString() + " Foods";
+        }
+        if (currentLevel >= 5 && levelWords != null && !hasUpdatedlevelTwo)
+        {
+            hasUpdatedlevelTwo = true;
+            textForLevel.text = "Level 2-"+ currentLevel.ToString() + " Tools And Supplies";
+            if(levelWords.Count > 0)
+            {
+                levelWords.Clear();
+            }
+          
+            
+            for (int i = 0; i < levelTwoWords.Length; i++)
+            {
+                if (levelTwoWords[i] != null)
+                {
+                    
+                    levelWords.Add(levelTwoWords[i]);
+                }
+            }
+            int randomRange = Random.Range(0, levelTwoWords.Length);
+            storedRandomInt = randomRange;
+            finalString = levelWords[randomRange].wordToUse;
+        }
+        if(currentLevel >= 5 && hasUpdatedlevelTwo)
+        {
+            textForLevel.text = "Level 2-" + currentLevel.ToString() + " Tools And Supplies";
+        }
+
+        hasUpdated = false;
+        lockedLetter.lettersLocked = 0;
+        hasUpdatedLevel = false;
+        StopCoroutine(TimerForScramble(finalString));
         SplitWord(finalString);
-        StartCoroutine(pause);
+
 
         yield break;
 
     }
 
-    IEnumerator TimerForScramble(string wordForScramble)
+    IEnumerator TimerForScramble(string finalstring)
     {
+        yield return new WaitForSeconds(.1f);
         timerImages[9].color = colorToChangeTime;
         yield return new WaitForSeconds(1f);
         timerImages[8].color = colorToChangeTime;
@@ -373,7 +463,7 @@ public class WordManager : MonoBehaviour
         yield return new WaitForSeconds(1f);
         counterForEnemy += 1;
         CheckEnemyLevel();
-        SplitWord(wordForScramble);
+        SplitWord(finalstring);
         yield break;
     }
 

@@ -32,6 +32,9 @@ public class PlayerController : MonoBehaviour
     bool pushBrickDown;
     bool isLockingTheWord;
 
+    public bool isFacingRight;
+    public bool isFacingLeft;
+
     private void Awake()
     {
         playerSprite = gameObject.transform.GetChild(0).GetComponent<SpriteRenderer>();
@@ -51,13 +54,15 @@ public class PlayerController : MonoBehaviour
 
         if (xInput > 0)
         {
-
+            isFacingRight = true;
+            isFacingLeft = false;
             playerSprite.flipX = false;
 
         }
         else if (xInput < 0)
         {
-
+            isFacingLeft = true;
+            isFacingRight = false;
             playerSprite.flipX = true;
 
         }
@@ -91,7 +96,7 @@ public class PlayerController : MonoBehaviour
     {
         if (context.performed)
         {
-            Debug.Log("pushing up");
+           
             pushBrickUp = true;
         }
         else
@@ -105,7 +110,7 @@ public class PlayerController : MonoBehaviour
     {
         if (context.performed)
         {
-            Debug.Log("Pushing down");
+           
             pushBrickDown = true;
         }
         else

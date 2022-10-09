@@ -47,12 +47,15 @@ public class BoxController : MonoBehaviour
     {
         if (!isLocked)
         {
-           
+            temporaryWord.Clear();
             if(temporaryWord.Count > 0)
             {
                 for(int i = 0; i > temporaryWord.Count; i++)
                 {
-                    temporaryWord.RemoveAt(i);
+                    if (temporaryWord[i] != null)
+                    {
+                        temporaryWord.RemoveAt(i);
+                    }
                 }
             }
             for (int i = 0; i < wordForBox.Count; i++)
@@ -190,6 +193,26 @@ public class BoxController : MonoBehaviour
     {
         gameObject.transform.GetChild(1).GetComponent<SpriteRenderer>().color = colorForWrong;
     }
+    public void ResetTheBrick()
+    {
+        tempLetter = "";
+        isLocked = false;
+       if(temporaryWord.Count > 0)
+        {
+            for(int i = 0; i < temporaryWord.Count; i++)
+            {
+                if (temporaryWord[i] != null)
+                {
+                    temporaryWord.RemoveAt(i);
+                }
+               
+            }
+            temporaryWord.Clear();
+            hasPushed = false;
+            hasLocked = false;
+        }
+    }
+
 
     IEnumerator ResetPush()
     {

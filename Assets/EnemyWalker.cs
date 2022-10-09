@@ -6,7 +6,8 @@ public class EnemyWalker : MonoBehaviour
 {
     [SerializeField]
     float moveSpeed;
-    float dirNumber;
+
+    public int dirNumber;
     
     public bool isMoving;
 
@@ -17,7 +18,15 @@ public class EnemyWalker : MonoBehaviour
         _rig = GetComponent<Rigidbody2D>();
     }
 
-  
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            collision.gameObject.GetComponent<PlayerHealth>().TakeDamage(1, dirNumber);
+        }
+    }
+
+
 
     private void FixedUpdate()
     {
